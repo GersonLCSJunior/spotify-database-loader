@@ -13,9 +13,10 @@ const insert = async (tracks) => {
             LIMIT 1;
         `)
     
-        const lastPlayedDate = new Date(lastPlayed.rows[0] ? lastPlayed.rows[0].played_at_timestamp : 0);
+        const lastPlayedDate = lastPlayed.rows[0] ? lastPlayed.rows[0].played_at_timestamp : 0;
         const filteredTracks = tracks.filter(track => track.played_at_timestamp > lastPlayedDate);
-    
+        console.log('LastPlayedDate => ' + lastPlayedDate)
+        console.log('FilteredTracks length => ' + filteredTracks.length)
         const promises = [];
         filteredTracks.forEach(track => {
             promises.push(client.query(`
@@ -26,7 +27,7 @@ const insert = async (tracks) => {
             `, Object.values(track)));
         })
         console.log('Waiting for queries');
-        await Promise.all(promises);
+        await Promise.all(promises.map(p => p.catch(e => e)));
         console.log('Closing connection');
         await client.release();
         console.log('Client connection ended');
